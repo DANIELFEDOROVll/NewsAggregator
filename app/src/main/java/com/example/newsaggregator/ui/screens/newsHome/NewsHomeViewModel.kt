@@ -31,10 +31,19 @@ class NewsHomeViewModel @Inject constructor(
     private fun loadNews(){
         viewModelScope.launch{
             val news = getNewsUseCase()
-            _newsHomeState.value = _newsHomeState.value.copy(
-                items = news,
-                isLoading = false
-            )
+
+            news.onSuccess { value ->
+                _newsHomeState.value = _newsHomeState.value.copy(
+                    items = value,
+                    isLoading = false
+                )
+            }
+            news.onFailure { error ->
+                _newsHomeState.value = _newsHomeState.value.copy(
+                    error = error.message,
+                    isLoading = false
+                )
+            }
         }
     }
 }

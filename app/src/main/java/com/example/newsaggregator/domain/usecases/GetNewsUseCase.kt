@@ -7,7 +7,7 @@ import javax.inject.Inject
 class GetNewsUseCase @Inject constructor(
     private val repo: RssFeedRepository
 ) {
-    suspend operator fun invoke(): List<Item>{
+    suspend operator fun invoke(): Result<List<Item>>{
         return repo.getNews()
     }
 }

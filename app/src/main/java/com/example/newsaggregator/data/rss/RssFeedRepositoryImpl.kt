@@ -6,6 +6,7 @@ import com.example.newsaggregator.domain.Item
 import com.example.newsaggregator.domain.RssFeedRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okio.IOException
 import javax.inject.Inject
 
 
@@ -14,26 +15,40 @@ class RssFeedRepositoryImpl @Inject constructor(
 ): RssFeedRepository {
     private var cache: List<Item> = emptyList()
 
-    override suspend fun getNews(): List<Item> {
+    override suspend fun getNews(): Result<List<Item>> {
         return withContext(Dispatchers.IO) {
             try {
                 val response = service.getRss()
-                cache = response.channel.items.map { it.toDomain() }
-                cache
+                val body = response.body()
+
+                if(response.isSuccessful && body != null){
+                    cache = body.channel.items.map { it.toDomain() }
+                    Result.success(cache)
+                }
+                else {
+                    Result.failure(Exception("Ошибка сервера: ${response.code()}"))
+                }
+            } catch (e: IOException){
+                Result.failure(IOException("Ошибка сети: ${e.message}"))
             } catch (e: Exception) {
-                Log.e("!!!error", "Ошибка getNews() : ${e.message}")
-                emptyList()
+                Result.failure(Exception("Неизвестная ошибка: ${e.message}"))
             }
         }
     }
 
-    override suspend fun getNewsByGuid(guid: String): Item? {
+    override suspend fun getNewsByGuid(guid: String): Result<Item> {
         return withContext(Dispatchers.IO) {
             try {
-                cache.find { it.guid == guid }
+                val news = cache.find { it.guid == guid }
+                if(news != null)
+                    Result.success(news)
+                else
+                    Result.failure(Exception("news is null"))
+
+            } catch (e: IOException){
+                Result.failure(IOException("Ошибка сети: ${e.message}"))
             } catch (e: Exception){
-                Log.e("!!!error", "Ошибка getNewsByGuid() : ${e.message}")
-                null
+                Result.failure(Exception("Неизвестная ошибка: ${e.message}"))
             }
         }
     }
