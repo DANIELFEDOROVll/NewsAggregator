@@ -114,6 +114,6 @@ fun openUrl(context: Context, url: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
         context.startActivity(intent)
     } catch (e: Exception) {
-        Log.e("myLog", "Failed to open URL: $url", e)
+        Log.e("!!!error", "Ошибка перехода по URL: $url", e)
     }
 }

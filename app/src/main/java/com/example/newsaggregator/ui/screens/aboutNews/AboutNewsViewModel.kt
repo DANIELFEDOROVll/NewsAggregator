@@ -33,10 +33,20 @@ class AboutNewsViewModel @Inject constructor(
 
     private fun loadNewsByGuid(guid: String){
         viewModelScope.launch {
-            val item = getNewsById(guid)
-            _aboutNewsState.value = _aboutNewsState.value.copy(
-                item = item
-            )
+            val news = getNewsById(guid)
+
+            news.onSuccess { value ->
+                _aboutNewsState.value = _aboutNewsState.value.copy(
+                    item = value,
+                    isLoading = false
+                )
+            }
+            news.onFailure { error ->
+                _aboutNewsState.value = _aboutNewsState.value.copy(
+                    error = error.message,
+                    isLoading = false
+                )
+            }
         }
     }
 }
